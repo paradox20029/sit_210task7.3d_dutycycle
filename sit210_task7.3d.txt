@@ -1,0 +1,32 @@
+#armaan chetal
+#roll no 2110994755
+import RPi.GPIO
+RPi.GPIO.setmode(RPi.GPIO.BCM)
+from gpiozero import DistanceSensor # the library enables the use of echo and trigger pin along with their pins specified in the inbuilt method
+from gpiozero import PWMLED # the library for pwm that enables the use of inbuilt  method like .value
+
+led=PWMLED(17)
+sensor=DistanceSensor(echo=20,trig=21)#pin 20 for echo and 21 for trigger and can have other parmeters such as max distance and threshold distance
+
+while True:
+    dist=sensor.distance*100 #the distance is calculated approxiamtely 
+    print("the distance of the object is: ",dist)
+    sleep(1)
+    if  dist<30 and dist>20:
+        print("low brightness")
+        led.value=0.3 #.value inbuilt method specifies the brightness of led
+        sleep(1) # the range of brightness is 0 to 1
+    elif dist<20 and dist>10:
+        print("mid brightness")
+        led.value=0.7
+        sleep(1)
+    elif dist<10:
+        print("high brightness")
+        led.value=1 #full brightness when in the range less than 10
+        sleep(1)
+    else:
+        print("no brightness")
+        led.value=0
+        sleep(1)
+    
+    
