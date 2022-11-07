@@ -1,32 +1,40 @@
-#armaan chetal
-#roll no 2110994755
-import RPi.GPIO
-RPi.GPIO.setmode(RPi.GPIO.BCM)
-from gpiozero import DistanceSensor # the library enables the use of echo and trigger pin along with their pins specified in the inbuilt method
-from gpiozero import PWMLED # the library for pwm that enables the use of inbuilt  method like .value
+import RPi.GPIO as GPIO
+import time
 
-led=PWMLED(17)
-sensor=DistanceSensor(echo=20,trig=21)#pin 20 for echo and 21 for trigger and can have other parmeters such as max distance and threshold distance
+GPIO.setwarnings(False)
+TRIG=int(10)#pins defined for the trigger, echo and led
+ECHO=int(9)
+red=int(11)
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(TRIG,GPIO.OUT) #the trigger pin is set as output pin 
+GPIO.setup(ECHO,GPIO.IN)#echo pin is set as input pin 
+
+P=GPIO.PWM(red,100)
+P.start(0)
 
 while True:
-    dist=sensor.distance*100 #the distance is calculated approxiamtely 
-    print("the distance of the object is: ",dist)
-    sleep(1)
-    if  dist<30 and dist>20:
-        print("low brightness")
-        led.value=0.3 #.value inbuilt method specifies the brightness of led
-        sleep(1) # the range of brightness is 0 to 1
-    elif dist<20 and dist>10:
-        print("mid brightness")
-        led.value=0.7
-        sleep(1)
-    elif dist<10:
-        print("high brightness")
-        led.value=1 #full brightness when in the range less than 10
-        sleep(1)
-    else:
-        print("no brightness")
-        led.value=0
-        sleep(1)
+    GPIO.OUTPUT(TRIG,False) #firstly the trigger pin is not intiated 
+    time.sleep(0.0002)#delay of 2 micro seconds is given (LOW PULSE)
+    GPIO.output(TRIG,True)# the output value is set as true which starts the trigger pin 
+    time.sleep(0.00001)#delay of 1 microsecond(HIGH PULSE)
+    GPIO.output(TRIG,False)
     
+    StartTime=time.time()
+    StopTime=time.time()
+    while GPIO.input(ECHO)==0:#when wave is reflected  then start time is calculated 
+        StartTime=time.time()
+    while GPIO.input(ECHO)==1:#when reflected wave and comes back then stop time is calculated 
+        StopTime=time.time()
+    TimeElapsed=StopTime-StartTime
+    distance=(TimeElapsed*34300)/2 #using the physics formuala for calculating the distnace travelled by sound
+    if(distance>=10 and distance>=20): #defining the range of distance at which different frequencies are used
+        P.ChangeDutyCycle(100) #This function is used to change the Duty Cycle of signal. We have to provide Duty Cycle in the range of 0-100.
+    elif(distance>=20 and distance>=30):
+        P.ChangeDutyCycle(50)
+     elif(distance>=30 and distance>=40):
+        P.ChangeDutyCycle(25)
+    else:
+        P.ChangeDutyCycle(0)
+    time.sleep(0.1)
     
